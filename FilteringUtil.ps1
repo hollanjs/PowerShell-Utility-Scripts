@@ -83,8 +83,8 @@ function Filter-ObjectArrayByKeywords
 
     Process
     {
-        $Found = $FilterList | Select-Object $ServiceSelectionParams `
-                             | Select-Object -ExpandProperty FilteredItems
+        $Found = $FilterKeywords | Select-Object $ServiceSelectionParams `
+                                 | Select-Object -ExpandProperty FilteredItems
 
         return $ObjectToFilter | ? $ParamToSearch -in $Found
     }
