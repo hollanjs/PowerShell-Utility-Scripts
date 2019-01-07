@@ -227,3 +227,73 @@ function WriteProgress($Count)
                    -SecondsRemaining $timeRemaining
 }
 #endregion
+
+
+function Test-Server {
+    param (
+        $ServerName
+    )
+    $ping = New-Object System.Net.Networkinformation.Ping
+    try {
+        $pingResult = $ping.Send($ServerName, 10)
+        return $pingResult.Status
+    }
+    catch {
+        return "Failure"
+    }
+}
+
+function Test-PendingReboot {
+    param (
+        $server
+    )
+
+<# Example block
+
+foreach ($server in $_Servers.Keys | Sort-Object) {
+    Write-Host ' ------------->>>vvv  ' $_Servers.$server.ServerName ' vvv<<<-------------' -F Green
+    Write-Host '|                                                          |' -F Green
+    Test-PendingReboot -server $_Servers.$server.ServerName
+    Write-Host '|                                                          |' -F Green
+    
+}
+
+Write-Host ' ----------------------------------------------------------' -F Green
+
+#>
+
+    $testRebootScriptBlock = {
+        if (Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" -EA Ignore) { return $true }
+        if (Get-Item "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired" -EA Ignore) { return $true }
+        if (Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name PendingFileRenameOperations -EA Ignore) { return $true }
+        try { 
+            $util = [wmiclass]"\\.\root\ccm\clientsdk:CCM_ClientUtilities"
+            $status = $util.DetermineIfRebootPending()
+            if(($status -ne $null) -and $status.RebootPending){
+                return $true
+            }
+        }catch{}
+        return $false
+    }
+
+    $verifyServer = Test-Server -ServerName $server
+    if ($verifyServer -eq "Success") {
+        $rebootRequired = $null
+        If ($server -ne $env:COMPUTERNAME) {
+            $rebootRequired = Invoke-Command -Computer $server -ScriptBlock $testRebootScriptBlock
+        }
+        elseif ($server -eq $env:COMPUTERNAME) {
+            $rebootRequired = Invoke-Command -ScriptBlock $testRebootScriptBlock
+        }
+
+        If ($rebootRequired) {
+            Write-Host $(">  --> REBOOT REQUIRED                                     <") -F Yellow -B DarkRed
+        }
+        else {
+            Write-Host $("|  --> NO REBOOT REQUIRED                                  |") -F Green -BackgroundColor DarkGreen
+        }
+    }
+    else {
+        Write-Host $("|  " + $server + " DOES NOT EXIST                          |") -ForegroundColor Red -BackgroundColor Black
+    }
+}
