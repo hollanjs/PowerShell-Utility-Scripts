@@ -303,3 +303,7 @@ Write-Host ' ----------------------------------------------------------' -F Gree
         Write-Host $("|  " + $server + " DOES NOT EXIST                          |") -ForegroundColor Red -BackgroundColor Black
     }
 }
+
+
+#change current console path to where the script is located:
+Push-Location -Path $PSScriptRoot
