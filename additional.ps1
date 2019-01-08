@@ -184,6 +184,12 @@ function Get-UserDefinedVariables
               | ForEach-Object GetValue $null)) -notcontains $_.name
     }
 }
+<#rerun same script with user defined parameters
+
+$UserSetParameters = Get-HashOfUserDefinedVariables
+Invoke-Expression -Command ($PSCommandPath + ' @UserSetParameters')
+
+#>
 
 function Transform-ArrayToHash {
     Param(
