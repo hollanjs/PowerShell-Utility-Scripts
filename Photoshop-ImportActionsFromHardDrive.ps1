@@ -135,8 +135,6 @@ switch($Selection)
     default { $Drives = $DiskOptions | ?{ $_.InfoString -eq $Selection } }
 }
 
-Write-Host "PSAction Folder: $($ActionCopyLocation)"
-
 foreach($Drive in $Drives)
 {
     Write-Host "`n###############################################################" -ForegroundColor Gray
@@ -150,6 +148,9 @@ foreach($Drive in $Drives)
     $Found = Get-ChildItem -File -Recurse -Filter "*.atn" -ErrorAction SilentlyContinue | select -Unique 
     Write-Host "Found the following .atn files:" -ForegroundColor Cyan
     $Found | Select-Object -ExpandProperty FullName
+
+    $Found = $Found | Out-GridView -Title "Select the actions you want to copy over (CTRL + A to select them all)" `
+                                   -PassThru
 
     foreach($File in $Found)
     {
@@ -187,4 +188,4 @@ foreach($Drive in $Drives)
 }
  
 
-
+cd $PSScriptRoot
