@@ -1,0 +1,34 @@
+function Get-FileStorageDrives 
+{
+    $DiskArr = @()
+    $Disks = Get-Disk | ?{ $_.PartitionStyle -eq "GPT" }
+    foreach($Disk in $Disks)
+    {
+        $Partitions = Get-Partition $Disk.Number | ?{ $_.DriveLetter -match "[A-Z]" }
+        foreach($Partition in $Partitions)
+        {
+            $DiskType = (($Partition.DiskPath -split "#")[0] -split "\\")[-1].ToUpper()
+
+            if($DiskType -like "*usb*")
+            {
+                $DiskType = "USB"
+            }
+
+            $Name = $Disk.FriendlyName
+            $DriveLetter = (Get-PSDrive $Partition.DriveLetter).Root
+
+            $hash = @{
+                Name = $Name
+                DriveLetter = $DriveLetter
+                DiskType = $DiskType
+                InfoString = "Drive ($($DriveLetter)) - $($Name) [$($DiskType)]"
+            }
+
+            $DiskArr += New-Object PSObject -Property $hash
+        }
+    }
+    return $DiskArr | Sort-Object -Property DriveLetter
+}
+
+$DiskOptions = Get-FileStorageDrives
+$DiskOptions | Select-Object -ExpandProperty Infostring
