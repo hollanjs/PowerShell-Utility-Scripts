@@ -89,7 +89,7 @@ $ActionCopyLocation =  "$($ps.PreferencesFolder)..\presets\actions"
 function Get-FileStorageDrives 
 {
     $DiskArr = @()
-    $Disks = Get-Disk | ?{ $_.PartitionStyle -eq "GPT" }
+    $Disks = Get-Disk | ?{ $_.PartitionStyle -eq "GPT" -or $_.PartitionStyle -eq "MBR" }
     foreach($Disk in $Disks)
     {
         $Partitions = Get-Partition $Disk.Number | ?{ $_.DriveLetter -match "[A-Z]" }
@@ -170,8 +170,9 @@ foreach($Drive in $Drives)
         {
             Write-Host "Action " -NoNewline -ForegroundColor Cyan
             Write-Host $File.Name -NoNewline
-            Write-Host " already exists - confirm overwrite..." -NoNewline -ForegroundColor Cyan
+            Write-Host " already exists..." -NoNewline -ForegroundColor Cyan
 
+            <# Uncomment to enable the ability to overwrite - update this later to a [switch]flag
             $opts = @{'path' = $File.FullName; 'destination' = $ActionCopyLocation; 'confirm' = $true}
             $overwritten = Copy-Item @opts
 
@@ -181,8 +182,11 @@ foreach($Drive in $Drives)
             }
             else
             {
+            #>
                 Write-Host "Skipping" -ForegroundColor Yellow
+            <# Uncomment to enable the ability to overwrite - update this later to a [switch]flag
             }
+            #>
         }
     }
 }
