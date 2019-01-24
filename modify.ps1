@@ -5,7 +5,7 @@ function Initialize-Step {
     param(
         [int]$NextStep,
         [string]$ScriptName,
-        [string]$AppRegPath = $_appConfig.RegSetupPath
+        [string]$AppRegPath
     )
 
     $p = $AppRegPath.Split("\")
@@ -216,7 +216,7 @@ function Log {
 
 function New-Collection {
     param (
-        $LogPath = $_psdb.BuildLogs,
+        $LogPath,
         [validateset('Start', 'Stop')]$Mode
     )
 
